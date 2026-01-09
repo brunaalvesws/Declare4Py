@@ -15,9 +15,10 @@ Provides basic conformance checking functionalities
 
 class MPDeclareAnalyzer(AbstractConformanceChecking):
 
-    def __init__(self, log: D4PyEventLog, declare_model: DeclareModel, consider_vacuity: bool):
+    def __init__(self, log: D4PyEventLog, declare_model: DeclareModel, consider_vacuity: bool, track_violations: str = "@@index"):
         super().__init__(log, declare_model)
         self.consider_vacuity = consider_vacuity
+        self.track_violations = track_violations
 
     def run(self) -> MPDeclareResultsBrowser:
         """
@@ -40,10 +41,9 @@ class MPDeclareAnalyzer(AbstractConformanceChecking):
             raise RuntimeError("You must load the log before checking the model.")
         if self.process_model is None:
             raise RuntimeError("You must load the DECLARE model before checking the model.")
-
         log_checkers_results = []
         for trace in self.event_log.get_log():
             log_checkers_results.append(ConstraintChecker().check_trace_conformance(trace, self.process_model,
                                                                                     self.consider_vacuity,
-                                                                                    self.event_log.activity_key))
+                                                                                    self.event_log.activity_key, self.track_violations))
         return MPDeclareResultsBrowser(log_checkers_results, self.process_model.serialized_constraints)

@@ -22,10 +22,10 @@ class MPDeclareResultsBrowser:
     def get_metric(self, metric: str, trace_id: int = None, constr_id: int = None) -> Union[pd.DataFrame, List, int]:
         if type(metric) is not str:
             raise RuntimeError("You must specify a metric among num_activations, num_violations, num_fulfillments, "
-                               "num_pendings, state.")
-        if metric not in ["num_activations", "num_violations", "num_fulfillments", "num_pendings", "state"]:
+                               "num_pendings, state, events_violated.")
+        if metric not in ["num_activations", "num_violations", "num_fulfillments", "num_pendings", "state", "events_violated"]:
             raise RuntimeError("You must specify a metric among num_activations, num_violations, num_fulfillments, "
-                               "num_pendings, state.")
+                               "num_pendings, state, events_violated.")
         results = []
         if trace_id is None and constr_id is None:
             for trace_res in self.model_check_res:
@@ -54,7 +54,7 @@ class MPDeclareResultsBrowser:
                 print(f"The index of the trace/constraint must be integers or slices, not {e}.")
             except AttributeError:
                 print("You must specify a metric among num_activations, num_violations, num_fulfillments, "
-                      "num_pendings, state.")
+                      "num_pendings, state, events_violated.")
         return results
 
     @staticmethod
@@ -66,4 +66,4 @@ class MPDeclareResultsBrowser:
                 return getattr(result_checker, metric)
         except AttributeError:
             print("You must specify a metric among num_activations, num_violations, num_fulfillments, "
-                  "num_pendings, state.")
+                  "num_pendings, state, events_violated.")
