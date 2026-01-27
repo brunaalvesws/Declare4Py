@@ -9,7 +9,7 @@ with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
 
 setup(
     name="declare4py",
-    version='0.1.fork',
+    version='0.1+fork',
     author="Ivan Donadello, Fabrizio Maria Maggi, Francesco Riva, fork  by Bruna Alves",
     author_email="donadelloivan@gmail.com, maggi@inf.unibz.it, Francesco.Riva@unibz.it, baws@cin.ufpe.br",
     description="Python library to perform discovery, conformance checking and query checking of DECLARE constraints.",
