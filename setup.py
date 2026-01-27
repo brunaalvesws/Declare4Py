@@ -9,11 +9,11 @@ with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
 
 setup(
     name="declare4py",
-    version='{{VERSION_PLACEHOLDER}}',
-    author="Ivan Donadello, Fabrizio Maria Maggi, Francesco Riva",
-    author_email="donadelloivan@gmail.com, maggi@inf.unibz.it, Francesco.Riva@unibz.it",
+    version='0.1.fork',
+    author="Ivan Donadello, Fabrizio Maria Maggi, Francesco Riva, fork  by Bruna Alves",
+    author_email="donadelloivan@gmail.com, maggi@inf.unibz.it, Francesco.Riva@unibz.it, baws@cin.ufpe.br",
     description="Python library to perform discovery, conformance checking and query checking of DECLARE constraints.",
-    url = "https://github.com/ivanDonadello/Declare4Py",
+    url = "url=https://github.com/brunaalvesws/Declare4Py",
     long_description_content_type="text/markdown",
     long_description=long_description,
     packages=find_packages(include=['Declare4Py*']),
