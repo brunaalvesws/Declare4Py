@@ -512,6 +512,7 @@ class TemplateConstraintChecker(ABC):
 
                 if eval(activation_rules, glob, locl):
                     num_activations += 1
+                    pendings_ids.append(event[self.track_violations])
 
                     if index < len(self.traces) - 1:
                         if self.traces[index + 1][self.concept_name] == self.activities[1]:
@@ -519,8 +520,7 @@ class TemplateConstraintChecker(ABC):
                                     'float': float}
                             if eval(correlation_rules, glob, locl) and eval(time_rule, glob, locl):
                                 num_fulfillments += 1
-                            else:
-                                pendings_ids.append(self.traces[index + 1][self.track_violations]) 
+                                pendings_ids.remove(event[self.track_violations])
                     else:
                         if not self.completed:
                             num_pendings = 1
@@ -683,14 +683,14 @@ class TemplateConstraintChecker(ABC):
 
                 if eval(activation_rules, glob, locl):
                     num_activations += 1
+                    pendings_ids.append(event[self.track_violations]) 
 
                     if index != 0 and self.traces[index - 1][self.concept_name] == self.activities[0]:
                         locl = {'A': event, 'T': self.traces[index - 1], 'timedelta': timedelta, 'abs': abs,
                                 'float': float}
                         if eval(correlation_rules, glob, locl) and eval(time_rule, glob, locl):
                             num_fulfillments += 1
-                        else:
-                            pendings_ids.append(self.traces[index + 1][self.track_violations]) 
+                            pendings_ids.remove(event[self.track_violations])
                             
         num_violations = num_activations - num_fulfillments
         vacuous_satisfaction = self.rules["vacuous_satisfaction"]
