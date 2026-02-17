@@ -479,15 +479,15 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0 and num_pendings == 0:
             state = TraceState.POSSIBLY_SATISFIED
-            event_id = None
+            events_id = None
         elif num_violations > 0 or (self.completed and num_pendings > 0):
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0 and num_pendings == 0:
             state = TraceState.SATISFIED
-            event_id = None
+            events_id = None
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=event_id)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=events_id)
 
     def mpChainResponse(self):
         """
