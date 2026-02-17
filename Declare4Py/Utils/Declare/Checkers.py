@@ -482,7 +482,6 @@ class TemplateConstraintChecker(ABC):
             event_id = None
         elif num_violations > 0 or (self.completed and num_pendings > 0):
             state = TraceState.VIOLATED
-            event_id = pending[self.track_violations]
         elif self.completed and num_violations == 0 and num_pendings == 0:
             state = TraceState.SATISFIED
             event_id = None
