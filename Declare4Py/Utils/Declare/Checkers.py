@@ -127,6 +127,8 @@ class TemplateConstraintChecker(ABC):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
         a_or_b_occurs = False
+        event_ids = []
+        
         for A in self.traces:
             if A[self.concept_name] == self.activities[0] or A[self.concept_name] == self.activities[1]:
                 locl = {'A': A, 'T': self.traces[0], 'timedelta': timedelta, 'abs': abs, 'float': float}
@@ -140,9 +142,10 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.VIOLATED
         elif a_or_b_occurs:
             state = TraceState.SATISFIED
+            event_ids = None
 
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
-                             state=state, events_violated=None)
+                             state=state, events_violated=event_ids)
 
     def mpExclusiveChoice(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
@@ -351,6 +354,8 @@ class TemplateConstraintChecker(ABC):
         num_activations = num_fulfillments + num_violations + num_pendings
         vacuous_satisfaction = self.rules["vacuous_satisfaction"]
         state = None
+        
+        pendings_ids = list(map(lambda x: x[self.track_violations], pendings))
 
         if not vacuous_satisfaction and num_activations == 0:
             if self.completed:
@@ -361,12 +366,12 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            pendings_ids = None
         elif self.completed and num_violations > 0:
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
-            
-        pendings_ids = list(map(lambda x: x[self.track_violations], pendings))
+            pendings_ids = None
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
                              num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=pendings_ids)
@@ -402,6 +407,8 @@ class TemplateConstraintChecker(ABC):
         num_activations = num_fulfillments + num_violations + num_pendings
         vacuous_satisfaction = self.rules["vacuous_satisfaction"]
         state = None
+        
+        pendings_ids = list(map(lambda x: x[self.track_violations], pendings))
 
         if not vacuous_satisfaction and num_activations == 0:
             if self.completed:
@@ -412,12 +419,13 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_pendings == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            pendings_ids = None
         elif self.completed and num_violations > 0:
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
+            pendings_ids = None
             
-        pendings_ids = list(map(lambda x: x[self.track_violations], pendings))
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
                              num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=pendings_ids)
@@ -531,10 +539,12 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0 and num_pendings == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            pendings_ids = None
         elif num_violations > 0 or (self.completed and num_pendings > 0):
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0 and num_pendings == 0:
             state = TraceState.SATISFIED
+            pendings_ids = None
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
                              num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=pendings_ids)
@@ -576,6 +586,8 @@ class TemplateConstraintChecker(ABC):
         num_violations = num_activations - num_fulfillments
         vacuous_satisfaction = self.rules["vacuous_satisfaction"]
         state = None
+        
+        activators_ids = list(map(lambda x: x[self.track_violations], activators))
 
         if not vacuous_satisfaction and num_activations == 0:
             if self.completed:
@@ -584,12 +596,12 @@ class TemplateConstraintChecker(ABC):
                 state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            activators_ids = None
         elif num_violations > 0:
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
-            
-        activators_ids = list(map(lambda x: x[self.track_violations], activators))
+            activators_ids = None
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations, num_pendings=None,
                              num_activations=num_activations, state=state, events_violated=activators_ids)
@@ -631,6 +643,9 @@ class TemplateConstraintChecker(ABC):
         num_violations = num_activations - num_fulfillments
         vacuous_satisfaction = self.rules["vacuous_satisfaction"]
         state = None
+        
+        activators_ids = list(map(lambda x: x[self.track_violations], activators))
+
         if not vacuous_satisfaction and num_activations == 0:
             if self.completed:
                 state = TraceState.VIOLATED
@@ -638,13 +653,13 @@ class TemplateConstraintChecker(ABC):
                 state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            activators_ids = None
         elif num_violations > 0:
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
-            
-        activators_ids = list(map(lambda x: x[self.track_violations], activators))
-
+            activators_ids = None
+        
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations, num_pendings=None,
                              num_activations=num_activations, state=state, events_violated=activators_ids)
 
@@ -689,10 +704,12 @@ class TemplateConstraintChecker(ABC):
                 state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            pendings_ids = None
         elif num_violations > 0:
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
+            pendings_ids = None
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations, num_pendings=None,
                              num_activations=num_activations, state=state, events_violated=pendings_ids)
@@ -742,10 +759,12 @@ class TemplateConstraintChecker(ABC):
                 state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            event_ids = None
         elif num_violations > 0:
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
+            event_ids = None
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
                              num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=event_ids)
@@ -783,6 +802,8 @@ class TemplateConstraintChecker(ABC):
         num_activations = num_fulfillments + num_violations + num_pendings
         vacuous_satisfaction = self.rules["vacuous_satisfaction"]
         state = None
+        
+        violators_ids = list(map(lambda x: x[self.track_violations], violators))
 
         if not vacuous_satisfaction and num_activations == 0:
             if self.completed:
@@ -791,12 +812,12 @@ class TemplateConstraintChecker(ABC):
                 state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            violators_ids = None
         elif num_violations > 0:
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
-            
-        violators_ids = list(map(lambda x: x[self.track_violations], violators))
+            violators_ids = None
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
                              num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=violators_ids)
@@ -831,6 +852,8 @@ class TemplateConstraintChecker(ABC):
         num_fulfillments = num_activations - num_violations
         vacuous_satisfaction = self.rules["vacuous_satisfaction"]
         state = None
+        
+        violators_ids = list(map(lambda x: x[self.track_violations], violators))
 
         if not vacuous_satisfaction and num_activations == 0:
             if self.completed:
@@ -839,12 +862,12 @@ class TemplateConstraintChecker(ABC):
                 state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            violators_ids = None
         elif num_violations > 0:
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
-        
-        violators_ids = list(map(lambda x: x[self.track_violations], violators))
+            violators_ids = None
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations, num_pendings=None,
                              num_activations=num_activations, state=state, events_violated=violators_ids)
@@ -883,10 +906,12 @@ class TemplateConstraintChecker(ABC):
                 state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            violators_ids = None
         elif num_violations > 0:
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
+            violators_ids = None
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations, num_pendings=None,
                              num_activations=num_activations, state=state,events_violated=violators_ids)
@@ -931,10 +956,12 @@ class TemplateConstraintChecker(ABC):
                 state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0:
             state = TraceState.POSSIBLY_SATISFIED
+            violators_ids = None
         elif num_violations > 0:
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
+            violators_ids = None
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
                              num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=violators_ids)
