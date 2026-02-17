@@ -252,7 +252,7 @@ class TemplateConstraintChecker(ABC):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
 
         state = TraceState.VIOLATED
-        event_id = self.traces[0][self.track_violations]
+        event_id = [self.traces[0][self.track_violations]]
         if self.traces[0][self.concept_name] == self.activities[0]:
             locl = {'A': self.traces[0]}
             if eval(activation_rules, glob, locl):
@@ -271,7 +271,7 @@ class TemplateConstraintChecker(ABC):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
 
         state = TraceState.VIOLATED
-        event_id = self.traces[-1][self.track_violations]
+        event_id = [self.traces[-1][self.track_violations]]
         if self.traces[-1][self.concept_name] == self.activities[0]:
             locl = {'A': self.traces[-1]}
             if eval(activation_rules, glob, locl):
