@@ -142,35 +142,41 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
-                             state=state)
+                             state=state, events_violated=None)
 
     def mpExclusiveChoice(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
         a_occurs = False
         b_occurs = False
+        
+        event_ids = []
         for A in self.traces:
             locl = {'A': A, 'T': self.traces[0], 'timedelta': timedelta, 'abs': abs, 'float': float}
             if not a_occurs and A[self.concept_name] == self.activities[0]:
                 if eval(activation_rules, glob, locl) and eval(time_rule, glob, locl):
                     a_occurs = True
+                    event_ids.append(A[self.track_violations])
             if not b_occurs and A[self.concept_name] == self.activities[1]:
                 if eval(activation_rules, glob, locl) and eval(time_rule, glob, locl):
                     b_occurs = True
+                    event_ids.append(A[self.track_violations])
             if a_occurs and b_occurs:
                 break
         state = None
         if not self.completed and (not a_occurs and not b_occurs):
             state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and (a_occurs ^ b_occurs):
+            event_ids = []
             state = TraceState.POSSIBLY_SATISFIED
         elif (a_occurs and b_occurs) or (self.completed and (not a_occurs and not b_occurs)):
             state = TraceState.VIOLATED
         elif self.completed and (a_occurs ^ b_occurs):
+            event_ids = []
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
-                             state=state)
+                             state=state, events_violated=event_ids)
 
     """
         mp-existence constraint checker
@@ -180,12 +186,16 @@ class TemplateConstraintChecker(ABC):
     def mpExistence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
+        
+        event_ids = []
         num_activations = 0
         for A in self.traces:
             if A[self.concept_name] == self.activities[0]:
                 locl = {'A': A, 'T': self.traces[0], 'timedelta': timedelta, 'abs': abs, 'float': float}
                 if eval(activation_rules, glob, locl) and eval(time_rule, glob, locl):
                     num_activations += 1
+                    event_ids.append( A[self.track_violations])
+                    
         n = self.rules["n"]
         state = None
         if not self.completed and num_activations < n:
@@ -194,8 +204,9 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.VIOLATED
         elif num_activations >= n:
             state = TraceState.SATISFIED
+            event_ids = []
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
-                             state=state, events_violated=[])
+                             state=state, events_violated=event_ids)
 
     """
         mp-absence constraint checker
@@ -206,24 +217,28 @@ class TemplateConstraintChecker(ABC):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
 
+        event_ids = []
         num_activations = 0
         for A in self.traces:
             if A[self.concept_name] == self.activities[0]:
                 locl = {'A': A, 'T': self.traces[0], 'timedelta': timedelta, 'abs': abs, 'float': float}
                 if eval(activation_rules, glob, locl) and eval(time_rule, glob, locl):
                     num_activations += 1
+                    event_ids.append(A[self.track_violations])
 
         n = self.rules["n"]
         state = None
         if not self.completed and num_activations < n:
             state = TraceState.POSSIBLY_SATISFIED
+            event_ids = []
         elif num_activations >= n:
             state = TraceState.VIOLATED
         elif self.completed and num_activations < n:
             state = TraceState.SATISFIED
+            event_ids = []
 
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
-                             state=state)
+                             state=state, events_violated=event_ids)
 
     """
         mp-init constraint checker
@@ -234,13 +249,15 @@ class TemplateConstraintChecker(ABC):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
 
         state = TraceState.VIOLATED
+        event_id = self.traces[-1][self.track_violations]
         if self.traces[0][self.concept_name] == self.activities[0]:
             locl = {'A': self.traces[0]}
             if eval(activation_rules, glob, locl):
                 state = TraceState.SATISFIED
+                event_id = None
 
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
-                             state=state)
+                             state=state, events_violated=[event_id])
 
     """
         mp-init constraint checker
@@ -251,13 +268,15 @@ class TemplateConstraintChecker(ABC):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
 
         state = TraceState.VIOLATED
+        event_id = self.traces[-1][self.track_violations]
         if self.traces[-1][self.concept_name] == self.activities[0]:
             locl = {'A': self.traces[-1]}
             if eval(activation_rules, glob, locl):
                 state = TraceState.SATISFIED
+                event_id = None
 
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
-                             state=state)
+                             state=state, events_violated=[event_id])
 
     """
         mp-exactly constraint checker
@@ -265,25 +284,31 @@ class TemplateConstraintChecker(ABC):
     def mpExactly(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
+        
+        event_ids = []
         num_activations = 0
         for A in self.traces:
             if A[self.concept_name] == self.activities[0]:
                 locl = {'A': A, 'T': self.traces[0], 'timedelta': timedelta, 'abs': abs, 'float': float}
                 if eval(activation_rules, glob, locl) and eval(time_rule, glob, locl):
                     num_activations += 1
+                    event_ids.append(A[self.track_violations])
+                    
         n = self.rules["n"]
         state = None
         if not self.completed and num_activations < n:
             state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_activations == n:
             state = TraceState.POSSIBLY_SATISFIED
+            event_ids = []
         elif num_activations > n or (self.completed and num_activations < n):
             state = TraceState.VIOLATED
         elif self.completed and num_activations == n:
             state = TraceState.SATISFIED
+            event_ids = []
 
         return CheckerResult(num_fulfillments=None, num_violations=None, num_pendings=None, num_activations=None,
-                             state=state)
+                             state=state, events_violated=event_ids)
 
     # mp-responded-existence constraint checker
     # Description:
@@ -340,9 +365,11 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
+            
+        pendings_ids = list(map(lambda x: x[self.track_violations], pendings))
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings, num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=pendings_ids)
 
     def mpResponse(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
@@ -410,6 +437,7 @@ class TemplateConstraintChecker(ABC):
         num_activations = 0
         num_fulfillments = 0
         num_pendings = 0
+        event_id = None
 
         for event in self.traces:
             if event[self.concept_name] == self.activities[0]:
@@ -438,15 +466,17 @@ class TemplateConstraintChecker(ABC):
                 state = TraceState.POSSIBLY_VIOLATED
         elif not self.completed and num_violations == 0 and num_pendings > 0:
             state = TraceState.POSSIBLY_VIOLATED
+            event_id = pending[self.track_violations]
         elif not self.completed and num_violations == 0 and num_pendings == 0:
             state = TraceState.POSSIBLY_SATISFIED
         elif num_violations > 0 or (self.completed and num_pendings > 0):
             state = TraceState.VIOLATED
+            event_id = pending[self.track_violations]
         elif self.completed and num_violations == 0 and num_pendings == 0:
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings, num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=[event_id])
 
     def mpChainResponse(self):
         """
@@ -462,6 +492,7 @@ class TemplateConstraintChecker(ABC):
         num_activations = 0
         num_fulfillments = 0
         num_pendings = 0
+        pendings_ids = []
 
         for index, event in enumerate(self.traces):
 
@@ -477,6 +508,8 @@ class TemplateConstraintChecker(ABC):
                                     'float': float}
                             if eval(correlation_rules, glob, locl) and eval(time_rule, glob, locl):
                                 num_fulfillments += 1
+                            else:
+                                pendings_ids.append(self.traces[index + 1][self.track_violations]) 
                     else:
                         if not self.completed:
                             num_pendings = 1
@@ -500,7 +533,7 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings, num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=pendings_ids)
 
     def mpPrecedence(self):
         """
@@ -570,6 +603,7 @@ class TemplateConstraintChecker(ABC):
 
         num_activations = 0
         num_fulfillments = 0
+        activators = []
         Ts = []
 
         for event in self.traces:
@@ -578,12 +612,16 @@ class TemplateConstraintChecker(ABC):
 
             if event[self.concept_name] == self.activities[1]:
                 locl = {'A': event}
+                activators.append(event)
+                
                 if eval(activation_rules, glob, locl):
                     num_activations += 1
+                    
                     for T in Ts:
                         locl = {'A': event, 'T': T, 'timedelta': timedelta, 'abs': abs, 'float': float}
                         if eval(correlation_rules, glob, locl) and eval(time_rule, glob, locl):
                             num_fulfillments += 1
+                            activators.remove(event)
                             break
                     Ts = []
         num_violations = num_activations - num_fulfillments
@@ -600,8 +638,11 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.VIOLATED
         elif self.completed and num_violations == 0:
             state = TraceState.SATISFIED
+            
+        activators_ids = list(map(lambda x: x[self.track_violations], activators))
+
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations, num_pendings=None,
-                             num_activations=num_activations, state=state)
+                             num_activations=num_activations, state=state, events_violated=activators_ids)
 
     def mpChainPrecedence(self):
         """
@@ -616,6 +657,7 @@ class TemplateConstraintChecker(ABC):
 
         num_activations = 0
         num_fulfillments = 0
+        pendings_ids = []
 
         for index, event in enumerate(self.traces):
             if event[self.concept_name] == self.activities[1]:
@@ -629,7 +671,9 @@ class TemplateConstraintChecker(ABC):
                                 'float': float}
                         if eval(correlation_rules, glob, locl) and eval(time_rule, glob, locl):
                             num_fulfillments += 1
-
+                        else:
+                            pendings_ids.append(self.traces[index + 1][self.track_violations]) 
+                            
         num_violations = num_activations - num_fulfillments
         vacuous_satisfaction = self.rules["vacuous_satisfaction"]
         state = None
@@ -647,7 +691,7 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations, num_pendings=None,
-                             num_activations=num_activations, state=state)
+                             num_activations=num_activations, state=state, events_violated=pendings_ids)
 
     def mpNotRespondedExistence(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
@@ -655,6 +699,7 @@ class TemplateConstraintChecker(ABC):
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
 
         pendings = []
+        event_ids = []
         num_fulfillments = 0
         num_violations = 0
         num_pendings = 0
@@ -674,6 +719,7 @@ class TemplateConstraintChecker(ABC):
                     locl = {'A': A, 'T': event, 'timedelta': timedelta, 'abs': abs, 'float': float}
                     if eval(correlation_rules, glob, locl) and eval(time_rule, glob, locl):
                         pendings.remove(A)
+                        event_ids.append(event[self.track_violations])
                         num_violations += 1
 
         if self.completed:
@@ -698,7 +744,7 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings, num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=event_ids)
 
     def mpNotResponse(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
@@ -805,6 +851,7 @@ class TemplateConstraintChecker(ABC):
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
         num_activations = 0
         num_violations = 0
+        violators_ids = []
 
         for index, event in enumerate(self.traces):
 
@@ -819,6 +866,7 @@ class TemplateConstraintChecker(ABC):
                                 'float': float}
                         if eval(correlation_rules, glob, locl) and eval(time_rule, glob, locl):
                             num_violations += 1
+                            violators_ids.append( self.traces[index - 1][self.track_violations])
 
         num_fulfillments = num_activations - num_violations
         vacuous_satisfaction = self.rules["vacuous_satisfaction"]
@@ -837,7 +885,7 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations, num_pendings=None,
-                             num_activations=num_activations, state=state)
+                             num_activations=num_activations, state=state,events_violated=violators_ids)
 
     def mpNotChainResponse(self):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
@@ -846,6 +894,8 @@ class TemplateConstraintChecker(ABC):
         num_activations = 0
         num_violations = 0
         num_pendings = 0
+        
+        violators_ids = []
 
         for index, event in enumerate(self.traces):
 
@@ -861,6 +911,7 @@ class TemplateConstraintChecker(ABC):
                                     'float': float}
                             if eval(correlation_rules, glob, locl) and eval(time_rule, glob, locl):
                                 num_violations += 1
+                                violators_ids.append(self.traces[index + 1][self.track_violations])
                     else:
                         if not self.completed:
                             num_pendings = 1
@@ -882,12 +933,12 @@ class TemplateConstraintChecker(ABC):
             state = TraceState.SATISFIED
 
         return CheckerResult(num_fulfillments=num_fulfillments, num_violations=num_violations,
-                             num_pendings=num_pendings, num_activations=num_activations, state=state)
+                             num_pendings=num_pendings, num_activations=num_activations, state=state, events_violated=violators_ids)
 
 
 class CheckerResult:
     def __init__(self, num_fulfillments: Optional[int], num_violations: Optional[int], num_pendings: Optional[int],
-                 num_activations: Optional[int], state: TraceState, events_violated: Optional[int]):
+                 num_activations: Optional[int], state: TraceState, events_violated: Optional[List]):
         self.num_fulfillments = num_fulfillments
         self.num_violations = num_violations
         self.num_pendings = num_pendings
