@@ -222,14 +222,17 @@ class TemplateConstraintChecker(ABC):
 
         event_ids = []
         num_activations = 0
+        
+        n = self.rules["n"]
+        
         for A in self.traces:
             if A[self.concept_name] == self.activities[0]:
                 locl = {'A': A, 'T': self.traces[0], 'timedelta': timedelta, 'abs': abs, 'float': float}
                 if eval(activation_rules, glob, locl) and eval(time_rule, glob, locl):
                     num_activations += 1
-                    event_ids.append(A[self.track_violations])
+                    if num_activations >= n:
+                        event_ids.append(A[self.track_violations])
 
-        n = self.rules["n"]
         state = None
         if not self.completed and num_activations < n:
             state = TraceState.POSSIBLY_SATISFIED
@@ -627,10 +630,10 @@ class TemplateConstraintChecker(ABC):
 
             if event[self.concept_name] == self.activities[1]:
                 locl = {'A': event}
-                activators.append(event)
                 
                 if eval(activation_rules, glob, locl):
                     num_activations += 1
+                    activators.append(event)
                     
                     for T in Ts:
                         locl = {'A': event, 'T': T, 'timedelta': timedelta, 'abs': abs, 'float': float}
