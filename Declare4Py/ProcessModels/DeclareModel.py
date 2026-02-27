@@ -288,7 +288,7 @@ class DeclareModelConditionParserUtility:
                                 cond = cond[len(w):].lstrip()
                                 tmp.append(w)
                             attr = " ".join(tmp)
-                            py_cond = py_cond + " " + attr + " in A and " + attr + " in T " \
+                            py_cond = py_cond + " '" + attr + "' in A and '" + attr + "' in T " \
                                       + 'and A["' + attr + '"] != T["' + attr + '"]'
                         elif next_word.lower() == "true":
                             py_cond = py_cond + " True"
