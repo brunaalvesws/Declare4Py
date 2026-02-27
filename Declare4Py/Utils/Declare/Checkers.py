@@ -561,6 +561,7 @@ class TemplateConstraintChecker(ABC):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
+        print(activation_rules)
 
         num_activations = 0
         num_fulfillments = 0
@@ -573,9 +574,9 @@ class TemplateConstraintChecker(ABC):
 
             if event[self.concept_name] == self.activities[1]:
                 locl = {'A': event}
-                activators.append(event)
                 
                 if eval(activation_rules, glob, locl):
+                    activators.append(event)
                     num_activations += 1
 
                     for T in Ts:
