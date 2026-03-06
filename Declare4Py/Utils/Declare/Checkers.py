@@ -561,7 +561,6 @@ class TemplateConstraintChecker(ABC):
         activation_rules = self.declare_parser_utility.parse_data_cond(self.rules["activation"])
         correlation_rules = self.declare_parser_utility.parse_data_cond(self.rules["correlation"])
         time_rule = self.declare_parser_utility.parse_time_cond(self.rules["time"])
-        print(activation_rules)
 
         num_activations = 0
         num_fulfillments = 0
